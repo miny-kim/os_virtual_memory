@@ -78,7 +78,7 @@ bool translate(enum memory_access_type rw, unsigned int vpn, unsigned int *pfn)
  *   1. Corresponding pte_directory is not exist
  *   2. pte is not valid
  *   3. pte is not writable but @rw is for write
- *   You can assume that all pages are writable; this means, when a page fault 
+ *   You can assume that all pages are writable; this means, when a page fault
  *   happens with valid PTE without writable permission, it was set for the
  *   copy-on-write.
  *

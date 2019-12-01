@@ -158,6 +158,7 @@ static void __do_simulation(FILE *input)
 		if (parse_command(command, &nr_tokens, tokens) < 0) {
 			continue;
 		}
+		if (nr_tokens == 0) continue;
 
 		if (nr_tokens == 1) {
 			if (strmatch(tokens[0], "exit")) break;
@@ -208,6 +209,19 @@ int main(int argc, char * argv[])
 		}
 	}
 
+	if (!quiet && !argv[optind]) {
+		printf("***************************************************************************\n");
+		printf(" __      ____  __    _____ _                 _       _\n");
+		printf(" \\ \\    / /  \\/  |  / ____(_)               | |     | |\n");
+		printf("  \\ \\  / /| \\  / | | (___  _ _ __ ___  _   _| | __ _| |_ ___  _ __ \n");
+		printf("   \\ \\/ / | |\\/| |  \\___ \\| | '_ ` _ \\| | | | |/ _` | __/ _ \\| '__|\n");
+		printf("    \\  /  | |  | |  ____) | | | | | | | |_| | | (_| | || (_) | |   \n");
+		printf("     \\/   |_|  |_| |_____/|_|_| |_| |_|\\__,_|_|\\__,_|\\__\\___/|_|\n");
+		printf("\n");
+		printf("                                              - SCE213 2019.12 -\n");
+		printf("***************************************************************************\n");
+	}
+
 	if (argv[optind]) {
 		if (!quiet) printf("Use file \"%s\" as input\n", argv[optind]);
 
@@ -216,6 +230,7 @@ int main(int argc, char * argv[])
 			fprintf(stderr, "No input file %s\n", argv[optind]);
 			return EXIT_FAILURE;
 		}
+		quiet = true;
 	} else {
 		if (!quiet) printf("Use stdin as input\n");
 	}
