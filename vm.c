@@ -120,7 +120,7 @@ static bool strmatch(char * const str, const char *expect)
 
 static void __show_pagetable(unsigned int start, unsigned int end)
 {
-	printf("** PID %d ** \n", current->pid);
+	fprintf(stderr, "** PID %d ** \n", current->pid);
 
 	for (int i = 0; i < NR_PTES_PER_PAGE; i++) {
 		struct pte_directory *pd = current->pagetable.outer_ptes[i];
@@ -136,6 +136,7 @@ static void __show_pagetable(unsigned int start, unsigned int end)
 				pte->writable ? 'w' : ' ',
 				pte->pfn);
 		}
+		printf("\n");
 	}
 }
 

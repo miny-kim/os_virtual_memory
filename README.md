@@ -38,6 +38,7 @@ This function is to simulate address translation in MMU so *you should not alter
 ### Tips and Restriction
 - Likewise previous PAs, printing out to stdout does not influence on the grading.
 - Implement features in an incremental way; implement the basic translation function first and get used to the page table/PTE manipulation first. And then implement the fork by duplicating the page table contents. You need to manipulate the PTEs of parent and child while implementing the feature to handle copy-on-write properly.
+- As explained above, the entire address space is supposed to be writable. So, be careful to handle `writable` bit in the page table.
 
 
 ### Submission / Grading
