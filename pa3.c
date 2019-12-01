@@ -53,7 +53,8 @@ extern unsigned int alloc_page(void);
  *   page table of @current and find the corresponding PTE of @vpn.
  *   If such an entry exists and OK to access the pfn in the PTE, fill @pfn
  *   with the pfn of the PTE and return true.
- *   Otherwise, return false;
+ *   Otherwise, return false.
+ *   Note that you should not modify any part of the page table in this function.
  *
  * RETURN
  *   @true on successful translation
@@ -62,6 +63,8 @@ extern unsigned int alloc_page(void);
  */
 bool translate(enum memory_access_type rw, unsigned int vpn, unsigned int *pfn)
 {
+	/*** DO NOT MODIFY THE PAGE TABLE IN THIS FUNCTION ***/
+
 	return false;
 }
 
