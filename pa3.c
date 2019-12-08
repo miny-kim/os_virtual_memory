@@ -65,19 +65,19 @@ bool translate(enum memory_access_type rw, unsigned int vpn, unsigned int *pfn)
 {
 	/*** DO NOT MODIFY THE PAGE TABLE IN THIS FUNCTION ***/
     printf("vpn:%d\n", vpn);
-    int second_idx = vpn >> 4;
-    int first_idx = vpn >> 4;
-    printf("second, first : %d, %d\n", second_idx, first_idx);
+    int second_idx = vpn & 15;
+    int first_idx =( vpn>> 4)&15 ;
+   printf("second, first : %d, %d\n", second_idx, first_idx);
     struct pte_directory *  addr = current->pagetable.outer_ptes[first_idx];
     if(addr)
     {
-        int pfnn = addr->ptes[second_idx].pfn;
-        printf("pfnn : %d\n", pfnn);
-        if(pfnn)
+        if(addr->ptes[second_idx].valid)
         {
-            pfn = &pfnn;
+            *pfn = addr->ptes[second_idx].pfn;
             return true;
         }
+      // *pfn = pfnn;
+        //return true;
     }    //    printf("rw : %d\n", rw);
 //    int ppfn = current->pagetable.outer_ptes[vpn];
 
@@ -105,10 +105,11 @@ bool translate(enum memory_access_type rw, unsigned int vpn, unsigned int *pfn)
 bool handle_page_fault(enum memory_access_type rw, unsigned int vpn)
 {
     printf("handle_page_fault_vpn : %d\n", vpn);
-    int second_idx = vpn >> 4;
-    int first_idx = vpn >> 4;
+    int second_idx =vpn & 15 ;
+    int first_idx = (vpn >> 4)&15;
     current->pagetable.outer_ptes[first_idx] = (struct pte_directory *)malloc(sizeof(struct pte_directory));
     current->pagetable.outer_ptes[first_idx]->ptes[second_idx].pfn = alloc_page();
+    current->pagetable.outer_ptes[first_idx]->ptes[second_idx].valid = true;
     return true;
 }
 
