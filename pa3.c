@@ -67,7 +67,7 @@ bool translate(enum memory_access_type rw, unsigned int vpn, unsigned int *pfn)
     printf("vpn:%d\n", vpn);
     int second_idx = vpn & 15;
     int first_idx =( vpn>> 4)&15 ;
-   printf("second, first : %d, %d\n", second_idx, first_idx);
+//   printf("second, first : %d, %d\n", second_idx, first_idx);
     struct pte_directory *  addr = current->pagetable.outer_ptes[first_idx];
     if(addr)
     {
@@ -107,9 +107,14 @@ bool handle_page_fault(enum memory_access_type rw, unsigned int vpn)
     printf("handle_page_fault_vpn : %d\n", vpn);
     int second_idx =vpn & 15 ;
     int first_idx = (vpn >> 4)&15;
-    current->pagetable.outer_ptes[first_idx] = (struct pte_directory *)malloc(sizeof(struct pte_directory));
+
+    if(!(current->pagetable.outer_ptes[first_idx]))
+        current->pagetable.outer_ptes[first_idx] = (struct pte_directory *)malloc(sizeof(struct pte_directory));
+
     current->pagetable.outer_ptes[first_idx]->ptes[second_idx].pfn = alloc_page();
-    current->pagetable.outer_ptes[first_idx]->ptes[second_idx].valid = true;
+    int a = current->pagetable.outer_ptes[first_idx]->ptes[second_idx].valid = true;
+  //  printf("a:%d\n", a);
+    current->pagetable.outer_ptes[first_idx]->ptes[second_idx].writable = true;
     return true;
 }
 
@@ -130,5 +135,46 @@ bool handle_page_fault(enum memory_access_type rw, unsigned int vpn)
  */
 void switch_process(unsigned int pid)
 {
+    struct process * tmp=NULL;
+   int f = false;
+
+   printf("f:%d\n", f);
+    list_for_each_entry(tmp, &processes, list)
+    {
+        if(pid == tmp->pid)
+        {
+            list_add_tail(&current->list, &processes);
+            list_del_init(&tmp->list);
+            f = true;
+            break;
+        }
+        printf("f:%d\n", f);
+    }
+
+    if(!f)
+    {
+        struct process * new;
+        new->pid = pid;
+
+        for(int i = 0; i<NR_PTES_PER_PAGE; i++){
+            struct pte_directory *pd = current->pagetable.outer_ptes[i];
+
+            if(!pd) continue;
+
+            for(int j = 0; j<NR_PTES_PER_PAGE; j++){
+                struct pte *pte = &pd->ptes[j];
+
+                if(!pte->valid)continue;
+                
+                pte->writable = false;
+                new->pagetable.outer_ptes[i] = pd;
+
+                list_add_tail(&current->list, &processes);
+
+                current = new;
+            }
+        }
+    }
+    
 }
 

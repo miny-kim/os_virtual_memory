@@ -125,12 +125,19 @@ static void __show_pagetable(unsigned int start, unsigned int end)
 	for (int i = 0; i < NR_PTES_PER_PAGE; i++) {
 		struct pte_directory *pd = current->pagetable.outer_ptes[i];
 
-		if (!pd) continue;
+		if (!pd) 
+        {
+//            printf("!pd\n");
+            continue;
+        }
 
 		for (int j = 0; j < NR_PTES_PER_PAGE; j++) {
 			struct pte *pte = &pd->ptes[j];
 
-			if (quiet && !pte->valid) continue;
+			if (quiet && !pte->valid){
+  //              printf("j : %d, !valid:%d\n", j, pte->valid);
+                continue;
+            }
 			fprintf(stderr, "%02d:%02d %c%c | %-3d\n", i, j,
 				pte->valid ? 'v' : ' ',
 				pte->writable ? 'w' : ' ',
