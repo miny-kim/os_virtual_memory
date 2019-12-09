@@ -43,6 +43,10 @@ extern struct process *current;
  */
 extern unsigned int alloc_page(void);//handle_page_fault
 
+int type;
+//1 : page_directory is not exists 
+//2 : pte is not vaild
+//3 : pte is not writable
 
 
 /**
@@ -69,18 +73,30 @@ bool translate(enum memory_access_type rw, unsigned int vpn, unsigned int *pfn)
     int first_idx =( vpn>> 4)&15 ;
 //   printf("second, first : %d, %d\n", second_idx, first_idx);
     struct pte_directory *  addr = current->pagetable.outer_ptes[first_idx];
+    
     if(addr)
     {
         if(addr->ptes[second_idx].valid)
         {
+            if(addr->ptes[second_idx].writable == false)
+            {
+                type = 3;
+                return false;
+            }
+
             *pfn = addr->ptes[second_idx].pfn;
             return true;
+        }
+        else
+        {
+            type = 2;
+            return false;
         }
       // *pfn = pfnn;
         //return true;
     }    //    printf("rw : %d\n", rw);
 //    int ppfn = current->pagetable.outer_ptes[vpn];
-
+    type = 1;
 	return false;
 }
 
@@ -107,14 +123,27 @@ bool handle_page_fault(enum memory_access_type rw, unsigned int vpn)
     printf("handle_page_fault_vpn : %d\n", vpn);
     int second_idx =vpn & 15 ;
     int first_idx = (vpn >> 4)&15;
+    
+    
+    if(type != 3)
+    {
+        if(!(current->pagetable.outer_ptes[first_idx]))//type1
+            current->pagetable.outer_ptes[first_idx] = (struct pte_directory *)malloc(sizeof(struct pte_directory));
 
-    if(!(current->pagetable.outer_ptes[first_idx]))
-        current->pagetable.outer_ptes[first_idx] = (struct pte_directory *)malloc(sizeof(struct pte_directory));
-
-    current->pagetable.outer_ptes[first_idx]->ptes[second_idx].pfn = alloc_page();
-    int a = current->pagetable.outer_ptes[first_idx]->ptes[second_idx].valid = true;
+        //type2
+        current->pagetable.outer_ptes[first_idx]->ptes[second_idx].pfn = alloc_page();
+        current->pagetable.outer_ptes[first_idx]->ptes[second_idx].valid = true;
   //  printf("a:%d\n", a);
-    current->pagetable.outer_ptes[first_idx]->ptes[second_idx].writable = true;
+        current->pagetable.outer_ptes[first_idx]->ptes[second_idx].writable = true;
+    }else{
+        printf("!!!!!type 3!!!!!\n");
+        current->pagetable.outer_ptes[first_idx]->ptes[second_idx].pfn = alloc_page();
+        current->pagetable.outer_ptes[first_idx]->ptes[second_idx].valid = true;
+        current->pagetable.outer_ptes[first_idx]->ptes[second_idx].writable = true;
+    }
+        
+
+
     return true;
 }
 
@@ -154,6 +183,7 @@ void switch_process(unsigned int pid)
             {
                 next = pnext;
                 f = true;
+                list_del_init(&next->list);
                 break;
             }
 
@@ -163,8 +193,8 @@ void switch_process(unsigned int pid)
             pnext = list_next_entry(pnext, list);
         } 
             
-        list_del_init(&next->list);
-        current = next;
+       // list_del_init(&next->list);
+       // current = next;
 
 /*    list_for_each_entry(tmp, &processes, list)
     {
