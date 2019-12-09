@@ -135,12 +135,40 @@ bool handle_page_fault(enum memory_access_type rw, unsigned int vpn)
  */
 void switch_process(unsigned int pid)
 {
-    struct process * tmp=NULL;
-   int f = false;
+    struct process * next=NULL;
+    struct process * pnext = NULL;
+    struct process * end=NULL;
+    int f = false;
 
-   printf("f:%d\n", f);
-    list_for_each_entry(tmp, &processes, list)
+
+    if(!list_empty(&processes)){
+        next = list_first_entry(&processes, struct process, list);
+        end = list_last_entry(&processes, struct process, list);
+        pnext = next;
+        printf("pnext->pid : %d\n", pnext->pid);
+
+        while(pnext){
+            printf("tmp->pid : %d\n", pnext->pid);
+
+            if(pid == pnext->pid)
+            {
+                next = pnext;
+                f = true;
+                break;
+            }
+
+            if(pnext->pid == end->pid)
+                break;
+
+            pnext = list_next_entry(pnext, list);
+        } 
+            
+        list_del_init(&next->list);
+        current = next;
+
+/*    list_for_each_entry(tmp, &processes, list)
     {
+        printf("tmp->pid : %d\n", tmp->pid);
         if(pid == tmp->pid)
         {
             list_add_tail(&current->list, &processes);
@@ -150,11 +178,13 @@ void switch_process(unsigned int pid)
         }
         printf("f:%d\n", f);
     }
+*/  }
 
     if(!f)
     {
-        struct process * new;
-        new->pid = pid;
+        next = (struct process *)malloc(sizeof(struct process));
+        next->pid = pid;
+        next->list = current->list;
 
         for(int i = 0; i<NR_PTES_PER_PAGE; i++){
             struct pte_directory *pd = current->pagetable.outer_ptes[i];
@@ -167,14 +197,14 @@ void switch_process(unsigned int pid)
                 if(!pte->valid)continue;
                 
                 pte->writable = false;
-                new->pagetable.outer_ptes[i] = pd;
+                printf("j : %d\n", j);
+                next->pagetable.outer_ptes[i] = pd;
 
-                list_add_tail(&current->list, &processes);
 
-                current = new;
             }
         }
     }
-    
+        list_add_tail(&current->list, &processes);
+        current = next;
 }
 
